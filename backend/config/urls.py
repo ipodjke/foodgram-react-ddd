@@ -3,23 +3,20 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from rest_framework import routers
-
-from ingredients.views import IngredientsViewSet
-from recipes.views import RecipeViewSet
-from tags.views import TagsViewSet
-from users.views import UserViewSet
+api_v1_patterns = [
+    path('', include('tags.urls')),
+    path('', include('ingredients.urls')),
+    path('', include('subscriptions.urls')),
+    path('', include('users.urls')),
+    path('', include('favorites.urls')),
+    path('', include('shopping_cart.urls')),
+    path('', include('recipes.urls')),
+]
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('djoser.urls.authtoken')),
-    path('api/v2/', include('tags.urls')),
-    path('api/v2/', include('ingredients.urls')),
-    path('api/v2/', include('subscriptions.urls')),
-    path('api/v2/', include('users.urls')),
-    path('api/v2/', include('favorites.urls')),
-    path('api/v2/', include('shoping_cart.urls')),
-    path('api/v2/', include('recipes.urls')),
+    path('api/', include(api_v1_patterns)),
 ]
 
 if settings.DEBUG:

@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
-class ShopingCart(models.Model):
+class ShoppingCart(models.Model):
     user = models.BigIntegerField(
         verbose_name='Поьзователь',
         validators=[MinValueValidator(1)]
@@ -17,6 +17,6 @@ class ShopingCart(models.Model):
         verbose_name_plural = 'Корзины'
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'recipe'], name='unique shoping recipe'
+                fields=['user', 'recipe'], name='unique shopping recipe'
             )
         ]

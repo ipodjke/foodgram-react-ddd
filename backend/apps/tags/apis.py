@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 class TagsAPI(viewsets.ViewSet):
 
-    tag_service = TagsService()
+    service = TagsService()
 
     def list(self, request: object) -> dict:
         logger.info('Метод TagsAPI list вызван')
-        return Response(self.tag_service.get_all())
+        return Response(self.service.get_all())
 
     def retrieve(self, request: request = None, pk: int = None) -> dict:
         logger.info('Метод TagsAPI retrieve вызван')
-        return Response(self.tag_service.get_by_id(instance_id=pk))
+        return Response(self.service.get_by_id(pk=int(pk)))

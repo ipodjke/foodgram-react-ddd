@@ -5,14 +5,14 @@ from rest_framework import serializers
 
 import recipes.services as services
 
-from .models import IngredientsListNew, RecipeNew, TagsListNew
+from .models import IngredientsList, Recipe, TagsList
 
 
 class IngredientsListSerializer(serializers.ModelSerializer):
     ingredient = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = IngredientsListNew
+        model = IngredientsList
         fields = ('ingredient', 'amount')
 
     def get_ingredient(self, obj):
@@ -28,36 +28,39 @@ class IngredientsListSerializer(serializers.ModelSerializer):
         }
 
 
-class RecipeSerializerNew(serializers.ModelSerializer):
+class RecipeSerializer(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField(read_only=True)
     author = serializers.SerializerMethodField(read_only=True)
     ingredients = IngredientsListSerializer(many=True)
-    # is_favorited = serializers.SerializerMethodField()
-    # is_in_shopping_cart = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     publication_date = serializers.DateTimeField(write_only=True)
 
     class Meta:
-        model = RecipeNew
+        model = Recipe
         fields = '__all__'
 
     def get_author(self, obj):
-        return services.RecipesService().get_user(pk=obj.author)
+        return services.RecipesService().get_user(request=self.context.get('request'),
+                                                  pk=obj.author)
 
     def get_tags(self, obj):
         return services.RecipesService().get_tags(tags=obj.tags.all())
-    
-    # def get_is_favorited(self, obj):
-    #     return check_the_occurrence(obj,
-    #                                 'marked_recipes__fovorited_recipe',
-    #                                 self)
 
-    # def get_is_in_shopping_cart(self, obj):
-    #     return check_the_occurrence(obj,
-    #                                 'marked_recipes__recipe_for_download',
-    #                                 self)
+    def get_is_favorited(self, obj):
+        return services.RecipesService().check_is_favorited(
+            recipe=obj.id,
+            user=self.context.get('request').user
+        )
+
+    def get_is_in_shopping_cart(self, obj):
+        return services.RecipesService().check_is_in_shopping_cart(
+            recipe=obj.id,
+            user=self.context.get('request').user
+        )
 
 
-class CreateRecipeSerializerNew(serializers.ModelSerializer):
+class CreateRecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField(max_length=None, use_url=True)
     tags = serializers.ListField(
         child=serializers.IntegerField(),
@@ -71,7 +74,7 @@ class CreateRecipeSerializerNew(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = RecipeNew
+        model = Recipe
         exclude = ('author',)
 
     # def validate_ingredients(self, value):
@@ -103,7 +106,7 @@ class CreateRecipeSerializerNew(serializers.ModelSerializer):
         tags = self._get_tags(validated_data)
         ingredients = self._get_ingredients(validated_data)
 
-        recipe = RecipeNew.objects.create(
+        recipe = Recipe.objects.create(
             author=self.context['author'].id,
             **validated_data
         )
@@ -133,7 +136,7 @@ class CreateRecipeSerializerNew(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        serializer = RecipeSerializerNew(
+        serializer = RecipeSerializer(
             instance
         )
         return serializer.data
@@ -150,31 +153,31 @@ class CreateRecipeSerializerNew(serializers.ModelSerializer):
         """
         return validated_data.pop('ingredients')
 
-    def _add_tags_to_recipe(self, recipe: RecipeNew, tags: list) -> None:
+    def _add_tags_to_recipe(self, recipe: Recipe, tags: list) -> None:
         """
         Добавить список тегов в TagsList и привязать к рецетпу.
         """
         for tag in tags:
-            TagsListNew.objects.create(
+            TagsList.objects.create(
                 recipe=recipe,
                 tag=tag,
             )
 
     def _add_ingredients_to_recipe(self,
-                                   recipe: RecipeNew,
+                                   recipe: Recipe,
                                    ingredients: list) -> None:
         """
         Добавить ингредиенты в IngredientList рецепта.
         """
         for ingredient in ingredients:
-            IngredientsListNew.objects.create(
+            IngredientsList.objects.create(
                 recipe=recipe,
                 ingredient=ingredient.get('id'),
                 amount=ingredient.get('amount')
             )
 
 
-class ShortRecipeSerializerNew(serializers.ModelSerializer):
+class ShortRecipeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RecipeNew
+        model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')

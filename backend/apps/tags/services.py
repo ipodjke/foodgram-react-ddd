@@ -1,7 +1,5 @@
 import logging
 
-from rest_framework import serializers
-
 from utils.base_services import BaseService
 
 from .models import Tag
@@ -15,11 +13,11 @@ class TagsService(BaseService):
         self.instance = Tag
 
     def get_all(self) -> dict:
-        logger.info('Get list of tags.')
+        logger.info('Метод TagsService get_all вызван')
         serializer = TagSerializer(super().get_all(), many=True)
         return serializer.data
 
-    def get_by_id(self, instance_id: int) -> dict:
-        logger.info('Get tag by id.')
-        serializer = TagSerializer(super().get_by_id(instance_id))
+    def get_by_id(self, pk: int) -> dict:
+        logger.info('Метод TagsService get_by_id вызван')
+        serializer = TagSerializer(super().get_by_id(pk))
         return serializer.data

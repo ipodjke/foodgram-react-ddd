@@ -3,8 +3,7 @@ from django.conf import settings
 from django_filters.rest_framework import FilterSet, filters
 from rest_framework.filters import BaseFilterBackend, SearchFilter
 
-from recipes.models import Recipe
-from tags.models import Tag
+from recipes.models import IngredientsList, Recipe
 
 
 class DoubleSearchBackend(SearchFilter):
@@ -87,9 +86,9 @@ class RecipeFilterSet(FilterSet):
     При фильтрации по author фильтрация идет по id.
     """
     tags = filters.ModelMultipleChoiceFilter(
-        queryset=Tag.objects.all(),
-        to_field_name='slug',
-        field_name='tags__slug'
+        queryset=IngredientsList.objects.all(),
+        to_field_name='tag',
+        field_name='tags__id'
     )
 
     class Meta:

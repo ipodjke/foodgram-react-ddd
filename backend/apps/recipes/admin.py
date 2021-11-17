@@ -1,45 +1,18 @@
 from django.contrib import admin
 
-from .models import (IngredientsList, IngredientsListNew, MarkedUserRecipes,
-                     Recipe, RecipeNew, TagsListNew)
+from .models import IngredientsList, Recipe, TagsList
 
 
-@admin.register(RecipeNew)
+@admin.register(Recipe)
 class RecipeNewAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(IngredientsListNew)
+
+@admin.register(IngredientsList)
 class IngredientsListNewAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(TagsListNew)
+@admin.register(TagsList)
 class TagsListNewAdmin(admin.ModelAdmin):
     pass
-
-
-class IngredientsListInline(admin.TabularInline):
-    model = IngredientsList
-    can_delete = False
-    autocomplete_fields = ['ingredients']
-    extra = 1
-
-
-@admin.register(Recipe)
-class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'total_number_of_additions')
-    filter_horizontal = ('tags',)
-    list_filter = ('author', 'tags', 'name')
-    inlines = (IngredientsListInline,)
-    search_fields = ['name', 'author']
-
-    def total_number_of_additions(self, obj):
-        return obj.marked_favorited_recipes.all().count()
-    total_number_of_additions.short_description = ('Общее количесвто '
-                                                   'добавлений в избранное')
-
-
-@admin.register(MarkedUserRecipes)
-class MarkedRecipeAdmin(admin.ModelAdmin):
-    list_display = ('user',)
-    filter_horizontal = ('fovorited_recipe', 'recipe_for_download')

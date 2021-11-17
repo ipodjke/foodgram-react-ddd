@@ -3,8 +3,8 @@ import logging
 from django.http import request
 from django.http.response import HttpResponse
 
-from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action, permission_classes
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -15,17 +15,24 @@ logger = logging.getLogger(__name__)
 
 class SubscriptionsAPI(viewsets.ViewSet):
 
-    subscriptions_service = SubscriptionsService()
+    service = SubscriptionsService()
 
-    @action(detail=False, url_path='subscriptions_new', permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='subscriptions', permission_classes=[IsAuthenticated])
     def get_subscriptions(self, request: request) -> HttpResponse:
-        return Response(self.subscriptions_service.get_list_subs(request))
+        logger.info('Метод SubscriptionsAPI get_subscriptions вызван')
+        return Response(self.service.get_list_subs(request))
 
-    @action(detail=True, url_path='subscribe_new', permission_classes=[IsAuthenticated])
+    @action(detail=True, url_path='subscribe', permission_classes=[IsAuthenticated])
     def subscribe_on_user(self, request: request, pk: str = None) -> HttpResponse:
-        return Response(self.subscriptions_service.subscribe(request=request, pk=int(pk)))
+        logger.info('Метод SubscriptionsAPI subscribe_on_user вызван')
+        return Response(self.service.subscribe(request=request, pk=int(pk)))
 
     @subscribe_on_user.mapping.delete
     def unsubscribe_on_user(self, request: request, pk: str = None) -> HttpResponse:
-        self.subscriptions_service.unsubscribe(request=request, pk=int(pk))
+        logger.info('Метод SubscriptionsAPI unsubscribe_on_user вызван')
+        self.service.unsubscribe(request=request, pk=int(pk))
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def check_is_subscribed(self, user: int, author: int) -> HttpResponse:
+        logger.info('Метод SubscriptionsAPI check_is_subscribed вызван')
+        return Response(self.service.check_is_subscribed(user=user, author=author))

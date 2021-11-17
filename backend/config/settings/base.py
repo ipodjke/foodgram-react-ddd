@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'recipes',
     'subscriptions',
     'favorites',
-    'shoping_cart',
+    'shopping_cart',
 ]
 
 MIDDLEWARE = [
