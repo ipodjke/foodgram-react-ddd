@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==3.1.13"
+djangorestframework = "*"
+djoser = "*"
+environs = "*"
+psycopg2-binary = "*"
+django-filter = "*"
+drf-extra-fields = "*"
+pillow = "*"
+gunicorn = "*"
+reportlab = "*"
+
+[dev-packages]
+flake8 = "*"
+flake8-quotes = "*"
+pep8-naming = "*"
+flake8-broken-line = "*"
+flake8-return = "*"
+flake8-isort = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.8"

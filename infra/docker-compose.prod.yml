@@ -1,0 +1,48 @@
+version: '3.3'
+
+services:
+  nginx:
+    image: ipodjke/frontend_foodgram:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf
+      - static_value:/var/html/static_django/
+      - media_value:/var/html/media/
+    depends_on:
+      - web
+    networks: 
+      - foodgram_network
+
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ../backend/envfiles/.env.prod
+    networks: 
+      - foodgram_network
+
+  web:
+    image: ipodjke/backend_foodgram:latest
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ../.env:/usr/src/app/web/envfiles/.env.prod
+      - ../data:/usr/src/app/data
+      - static_value:/usr/src/app/web/static_django/
+      - media_value:/usr/src/app/web/media/
+    env_file:
+      - ../backend/envfiles/.env.prod
+    depends_on:
+      - db
+    networks: 
+      - foodgram_network
+
+networks:
+  foodgram_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  static_value:
+  media_value:
