@@ -11,6 +11,7 @@ services:
       - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf
       - static_value:/var/html/static_django/
       - media_value:/var/html/media/
+      - ../docs:/usr/share/nginx/html/api/docs/
     depends_on:
       - web
     networks: 
@@ -21,22 +22,24 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ../backend/envfiles/.env.prod
+      - ../backend/envfiles/.env.dev_b+f
     networks: 
       - foodgram_network
 
   web:
     build:
       context: ../backend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev_b+f
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - 8080:8000
     volumes:
       - ../backend:/usr/src/app/web
       - ../data:/usr/src/app/data
       - static_value:/usr/src/app/web/static_django/
       - media_value:/usr/src/app/web/media/
     env_file:
-      - ../backend/envfiles/.env.prod
+      - ../backend/envfiles/.env.dev_b+f
     depends_on:
       - db
     networks: 
