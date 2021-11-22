@@ -47,7 +47,7 @@ class UsersService(BaseService):
             ('count', self.pagination_class.page.paginator.count),
             ('next', self.pagination_class.get_next_link()),
             ('previous', self.pagination_class.get_previous_link()),
-            ('result', serializer.data)
+            ('results', serializer.data)
         ])
 
     def create_user(self, request: request) -> dict:
@@ -63,9 +63,10 @@ class UsersService(BaseService):
 
     def set_password(self, request: request) -> bool:
         logger.info('Метод UsersService set_password вызван')
-        serializer = SetPasswordSerializer(data=request.data)
+        serializer = SetPasswordSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-
+        print(serializer.data)
+        print(serializer.data['new_password'])
         request.user.set_password(serializer.data['new_password'])
         request.user.save()
 

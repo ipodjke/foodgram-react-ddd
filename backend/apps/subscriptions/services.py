@@ -40,9 +40,9 @@ class SubscriptionsService(BaseService):
             ('count', self.pagination_class.page.paginator.count),
             ('next', self.pagination_class.get_next_link()),
             ('previous', self.pagination_class.get_previous_link()),
-            ('result', serializer.data)
+            ('results', serializer.data)
         ])
-
+    
     def subscribe(self, request: request, pk: int = None) -> dict:
         logger.info('Метод SubscriptionsService subscribe вызван')
         if request.user.id == pk:
@@ -55,7 +55,7 @@ class SubscriptionsService(BaseService):
             )
 
         self.instance.objects.create(follower=request.user.id, author=pk)
-        author = UsersInterface().get_user(pk=pk)
+        author = UsersInterface().get_user(pk=pk, request=request)
         context = {'limit': request.query_params.get('recipes_limit')}
         serializer = SubscriptionsSerializer(author, context=context)
 

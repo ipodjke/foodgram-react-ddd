@@ -27,7 +27,7 @@ class RecipesAPI(viewsets.ViewSet):
 
     def retrieve(self, request: request = None, pk: int = None) -> HttpResponse:
         logger.info('Метод RecipesAPI retrieve вызван')
-        return Response(self.service.get_by_id(pk=pk))
+        return Response(self.service.get_by_id(request=request, pk=pk))
 
     def destroy(self, request: request, pk: int = None) -> HttpResponse:
         logger.info('Метод RecipesAPI destroy вызван')

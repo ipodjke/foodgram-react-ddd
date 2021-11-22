@@ -29,9 +29,8 @@ class IngredientsService(BaseService):
         logger.info('Метод IngredientsService get_by_id вызван')
         serializer = IngredientSerializer(super().get_by_id(instance_id))
         return serializer.data
-    
+
     def filter_queryset(self, queryset, request):
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(request, queryset, self)
         return queryset
-

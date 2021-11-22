@@ -5,7 +5,7 @@ from rest_framework.filters import BaseFilterBackend
 
 import recipes.services as service
 
-from .models import IngredientsList, Recipe
+from .models import Recipe, TagsList
 
 
 class IsFavoritedFilterBackend(BaseFilterBackend):
@@ -16,7 +16,6 @@ class IsFavoritedFilterBackend(BaseFilterBackend):
     """
     def filter_queryset(self, request, queryset, view):
         path_name = settings.PATH_PARAM_NAMES.get('favorited')
-
         if request.query_params.get(path_name) == 'true':
             favorite_recipes = service.RecipesService().get_user_favorite_recipes(user=request.user)
             result = []
@@ -59,11 +58,13 @@ class RecipeFilterSet(FilterSet):
     фильтрации по tags.
     При фильтрации по author фильтрация идет по id.
     """
-    tags = filters.ModelMultipleChoiceFilter(
-        queryset=IngredientsList.objects.all(),
-        to_field_name='tag',
-        field_name='tags__id'
+    tags = filters.CharFilter(
+        method='filter_on_tags'
     )
+
+    def filter_on_tags(self, queryset, name, value):
+        tags = service.RecipesService().get_tags_by_slug(self.request.query_params.getlist('tags'))
+        return queryset.filter(tags__tag__in=tags).distinct()
 
     class Meta:
         model = Recipe

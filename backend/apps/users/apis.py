@@ -34,10 +34,11 @@ class UsersAPI(viewsets.ViewSet):
         logger.info('Метод UsersApi get_user_profile вызван')
         return Response(self.service.get_profile(request))
 
-    @action(detail=False, url_path='set_password', permission_classes=[IsAuthenticated])
+    @action(detail=False, url_path='set_password', methods=['POST'],
+            permission_classes=[IsAuthenticated])
     def set_password(self, request: request) -> HttpResponse:
         logger.info('Метод UsersApi set_password вызван')
-        if self.service.set_password(request):
+        if self.service.set_password(request=request):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 

@@ -40,8 +40,7 @@ class RecipesService(BaseService):
 
         page = self.pagination_class.paginate_queryset(
             queryset=queryset,
-            request=request,
-            view=None
+            request=request
         )
 
         serializer = RecipeSerializer(page, many=True, context={'request': request})
@@ -49,14 +48,14 @@ class RecipesService(BaseService):
             ('count', self.pagination_class.page.paginator.count),
             ('next', self.pagination_class.get_next_link()),
             ('previous', self.pagination_class.get_previous_link()),
-            ('result', serializer.data)
+            ('results', serializer.data)
         ])
 
     def create_recipe(self, request: request) -> dict:
         logger.info('Метод RecipesService create_recipe вызван')
         serializer = CreateRecipeSerializer(
             data=request.data,
-            context={'author': request.user}
+            context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -70,13 +69,19 @@ class RecipesService(BaseService):
         logger.info('Метод RecipesService get_tags вызван')
         return [interfaces.TagsInterface().get_tags(pk=tag.tag) for tag in tags]
 
+    def get_tags_by_slug(self, slugs: list) -> list:
+        return [interfaces.TagsInterface().get_tag_by_slug(slug=slug) for slug in slugs]
+
     def get_ingredient(self, pk: int) -> dict:
         logger.info('Метод RecipesService get_ingredient вызван')
         return interfaces.IngredientsInterface().get_ingredient(pk=pk)
 
-    def get_by_id(self, pk: int) -> dict:
+    def get_by_id(self, request: request, pk: int) -> dict:
         logger.info('Метод RecipesService get_by_id вызван')
-        serializer = RecipeSerializer(super().get_by_id(instance_id=pk))
+        serializer = RecipeSerializer(
+            super().get_by_id(instance_id=pk),
+            context={'request': request}
+        )
         return serializer.data
 
     def delete(self, request: request, pk: int) -> bool:

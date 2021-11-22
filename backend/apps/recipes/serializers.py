@@ -48,15 +48,17 @@ class RecipeSerializer(serializers.ModelSerializer):
         return services.RecipesService().get_tags(tags=obj.tags.all())
 
     def get_is_favorited(self, obj):
+        user = self.context.get('request').user if self.context.get('request') else None
         return services.RecipesService().check_is_favorited(
             recipe=obj.id,
-            user=self.context.get('request').user
+            user=user
         )
 
     def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user if self.context.get('request') else None
         return services.RecipesService().check_is_in_shopping_cart(
             recipe=obj.id,
-            user=self.context.get('request').user
+            user=user
         )
 
 
@@ -107,7 +109,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         ingredients = self._get_ingredients(validated_data)
 
         recipe = Recipe.objects.create(
-            author=self.context['author'].id,
+            author=self.context.get('request').user.id,
             **validated_data
         )
 
@@ -136,9 +138,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return instance
 
     def to_representation(self, instance):
-        serializer = RecipeSerializer(
-            instance
-        )
+        serializer = RecipeSerializer(instance, context=self.context)
         return serializer.data
 
     def _get_tags(self, validated_data: dict) -> list:

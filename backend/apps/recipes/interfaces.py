@@ -21,6 +21,9 @@ class TagsInterface:
     def get_tags(self, pk: int) -> dict:
         logger.info('Метод TagsInterface get_tags вызван из recipes')
         return tags_api.TagsAPI().retrieve(pk=pk).data
+    
+    def get_tag_by_slug(self, slug: str) -> int:
+        return tags_api.TagsAPI().get_tag_by_slug(slug=slug).data.get('id')
 
 
 class IngredientsInterface:

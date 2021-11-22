@@ -44,6 +44,7 @@ class SetPasswordSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         try:
             validate_password(value, self.context['request'].user)
+            return value
         except ValidationError:
             raise serializers.ValidationError(
                 {'new_password': list(ValidationError.messages)}
@@ -54,5 +55,5 @@ class SetPasswordSerializer(serializers.Serializer):
             return value
 
         raise serializers.ValidationError(
-            django_settings.EERROR_MESSAGE.get('current_password')
+            django_settings.ERROR_MESSAGE.get('current_password')
         )
