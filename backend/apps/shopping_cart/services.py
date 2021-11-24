@@ -1,9 +1,10 @@
 import io
 import logging
+from typing import Union
 
 from django.conf import settings
 from django.db.models.query import QuerySet
-from django.http import request
+from django.http.response import Http404
 
 import reportlab
 from reportlab.lib.pagesizes import A4
@@ -13,47 +14,49 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework.exceptions import ValidationError
 
+import shopping_cart.interfaces as interface
 from utils.base_services import BaseService
 
-from .interfaces import RecipesInrerface
 from .models import ShoppingCart
+from .serializers import ShoppingCartSerializer
 
 logger = logging.getLogger(__name__)
 
 
 class ShoppingCartService(BaseService):
-    def __init__(self):
-        self.instance = ShoppingCart
+    instance = ShoppingCart
+    serializer_class = ShoppingCartSerializer
+    lookup_field = 'recipe'
+    lookup_url_kwarg = 'pk'
+    include_to_lookup = {'user': 'self.request.user.id'}
+    filter_backends = []
+    pagination_class = None
+    logger = logging.getLogger(__name__)
 
-    def add_to_shopping_cart(self, request: request, pk: int = None) -> dict:
+    # REST API logic
+    def add_to_shopping_cart(self, pk: int) -> dict:
         logger.info('Метод ShoppingCartService add_to_shopping_cart вызван')
-        if self.instance.objects.filter(user=request.user.id, recipe=pk).exists():
-            raise ValidationError(
-                {'errors': settings.ERROR_MESSAGE.get('alredy_in_cart')}
-            )
-        self.instance.objects.create(user=request.user.id, recipe=pk)
-        return RecipesInrerface().get_short_recipe(pk=pk)
+        # recipe ловим Http404 exception, не возможно добавить не существующий рецепт.
+        recipe = interface.RecipesInrerface().get_recipe_with_shot_serializer(request=self.request,
+                                                                              pk=pk)
+        data = {
+            'user': self.request.user.id,
+            'recipe': pk
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return recipe # noqa
 
-    def delete_from_shopping_cart(self, request: request, pk: int = None) -> bool:
+    def delete_from_shopping_cart(self, pk: int = None) -> bool:
         logger.info('Метод ShoppingCartService delete_from_shopping_cart вызван')
-        if not self.instance.objects.filter(user=request.user.id, recipe=pk).exists():
-            raise ValidationError(
-                {'errors': settings.ERROR_MESSAGE.get('not_in_cart')}
-            )
-        self.instance.objects.get(user=request.user.id, recipe=pk).delete()
+        self._validate_delete_request(user=self.request.user.id, recipe=pk)
+        self.get_object().delete()
         return True
 
-    def check_is_in_shopping_cart(self, recipe: int, user: int) -> bool:
-        logger.info('Метод ShoppingCartService check_is_in_shopping_cart вызван')
-        return self.instance.objects.filter(user=user, recipe=recipe).exists()
-
-    def get_user_shopping_cart(self, user: int) -> dict:
-        logger.info('Метод ShoppingCartService get_user_shopping_cart вызван')
-        return self.instance.objects.filter(user=user)
-
-    def download_shopping_cart(self, request: request) -> dict:
+    def download_shopping_cart(self) -> dict:
         logger.info('Метод download_shopping_cart delete_from_shopping_cart вызван')
-        shopping_cart = self.instance.objects.filter(user=request.user.id)
+        shopping_cart = self.instance.objects.filter(user=self.request.user.id)
         ingredients = self._get_ingredients(shopping_cart)
         file = self._create_file(ingredients)
         return self._create_file_response(file)
@@ -79,7 +82,11 @@ class ShoppingCartService(BaseService):
         ingredient_list = {}
 
         for recipe in shopping_cart:
-            ingredients = RecipesInrerface().get_recipe(pk=recipe.recipe).get('ingredients')
+            ingredients = interface.RecipesInrerface().get_recipe(
+                pk=recipe.recipe,
+                request=self.request,
+            ).get('ingredients')
+
             for ingredient in ingredients:
                 key = (f'{ingredient.get("name")} '
                        f'({ingredient.get("measurement_unit")})')
@@ -103,9 +110,7 @@ class ShoppingCartService(BaseService):
         Выходное значение:
             object - pdf файл
         """
-        reportlab.rl_config.TTFSearchPath.append(
-            str(settings.BASE_DIR) + '/utils/fonts/'
-        )
+        reportlab.rl_config.TTFSearchPath.append('./apps/shopping_cart/utils/fonts/')
         pdfmetrics.registerFont(TTFont('Roboto', 'Roboto.ttf'))
 
         buffer = io.BytesIO()
@@ -145,3 +150,25 @@ class ShoppingCartService(BaseService):
             'as_attachment': True,
             'filename': 'product_list.pdf'
         }
+
+    # APP API logic
+    def check_is_in_shopping_cart(self, recipe: int, user: int) -> bool:
+        logger.info('Метод ShoppingCartService check_is_in_shopping_cart вызван')
+        context = {'user': user, 'recipe': recipe}
+        return self.check_is_in(context)
+
+    def get_user_shopping_cart(self, user: int) -> QuerySet:
+        logger.info('Метод ShoppingCartService get_user_shopping_cart вызван')
+        return self.instance.objects.filter(user=user)
+
+    # local functions
+    def _validate_delete_request(self, user: int, recipe: int) -> Union[ValidationError,
+                                                                        Http404,
+                                                                        None]:
+        print(11111)
+        interface.RecipesInrerface().get_recipe_with_shot_serializer(request=self.request,
+                                                                     pk=recipe)
+        if not self.instance.objects.filter(user=user, recipe=recipe).exists():
+            raise ValidationError(
+                {'errors': settings.ERROR_MESSAGE.get('not_in_cart')}
+            )

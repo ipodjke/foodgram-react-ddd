@@ -11,18 +11,25 @@ from .services import TagsService
 logger = logging.getLogger(__name__)
 
 
-class TagsAPI(viewsets.ViewSet):
+class TagsRestAPI(viewsets.ViewSet):
+    service = TagsService
 
-    service = TagsService()
+    def list(self, request: request) -> HttpResponse:
+        logger.info('Метод TagsRestAPI list вызван')
+        return Response(self.service(request).list())
 
-    def list(self, request: object) -> HttpResponse:
-        logger.info('Метод TagsAPI list вызван')
-        return Response(self.service.get_all())
+    def retrieve(self, request: request, pk: str) -> HttpResponse:
+        logger.info('Метод TagsRestAPI retrieve вызван')
+        return Response(self.service(request, self.kwargs).retrieve())
 
-    def retrieve(self, request: request = None, pk: int = None) -> HttpResponse:
-        logger.info('Метод TagsAPI retrieve вызван')
-        return Response(self.service.get_by_id(pk=int(pk)))
 
-    def get_tag_by_slug(self, slug: str) -> HttpResponse:
-        logger.info('Метод TagsAPI get_tag_by_slug вызван')
-        return Response(self.service.get_tag_by_slug(slug=slug))
+class TagsAppAPI:
+    service = TagsService
+
+    def get_tag_by_slug(self, slug: str) -> dict:
+        logger.info('Метод TagsAppAPI get_tag_by_slug вызван')
+        return self.service().get_tag_by_slug(slug=slug)
+
+    def get_tag(self, pk: int) -> dict:
+        logger.info('Метод TagsAppAPI get_tag вызван')
+        return self.service().get_tag(pk=pk)

@@ -140,5 +140,9 @@ ERROR_MESSAGE = {
     'self_unsubscription': 'Вы не можете отписываться от себя',
     'alredy_subscribe': 'Вы уже подписаны на этого пользователя',
     'not_subscribe': 'Вы не подписаны на этого пользователя',
-    'current_password': 'Вы указали не верный пароль от своей учетной записи'
+    'current_password': 'Вы указали не верный пароль от своей учетной записи',
+    'both_query_params': 'Не допустимый запрос, заданы is_favorited и is_in_shopping_cart,'
+                         ' выберите один',
+    'unique_query_params': 'Не возможно использовать фильтрацию по author и(или) tags совместно'
+                           ' c is_favorited или is_in_shopping_cart'
 }

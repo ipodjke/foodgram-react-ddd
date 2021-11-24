@@ -1,5 +1,7 @@
 import logging
+from typing import Union
 
+from django.db.models.query import QuerySet
 from django.http import request
 from django.http.response import HttpResponse
 
@@ -12,45 +14,54 @@ from .services import RecipesService
 logger = logging.getLogger(__name__)
 
 
-class RecipesAPI(viewsets.ViewSet):
-
-    service = RecipesService()
+class RecipesRestAPI(viewsets.ViewSet):
+    service = RecipesService
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def list(self, request: request) -> HttpResponse:
-        logger.info('Метод RecipesAPI list вызван')
-        return Response(self.service.get_pagination_list(request=request))
+        logger.info('Метод RecipesRestAPI list вызван')
+        return Response(self.service(request).list())
 
     def create(self, request: request) -> HttpResponse:
-        logger.info('Метод RecipesAPI create вызван')
-        return Response(self.service.create_recipe(request=request))
+        logger.info('Метод RecipesRestAPI create вызван')
+        return Response(self.service(request, action=self.action).create())
 
-    def retrieve(self, request: request = None, pk: int = None) -> HttpResponse:
-        logger.info('Метод RecipesAPI retrieve вызван')
-        return Response(self.service.get_by_id(request=request, pk=pk))
+    def retrieve(self, request: request, pk: str) -> HttpResponse:
+        logger.info('Метод RecipesRestAPI retrieve вызван')
+        return Response(self.service(request, self.kwargs).retrieve())
 
-    def destroy(self, request: request, pk: int = None) -> HttpResponse:
-        logger.info('Метод RecipesAPI destroy вызван')
-        self.service.delete(request=request, pk=pk)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def destroy(self, request: request, pk: str) -> HttpResponse:
+        logger.info('Метод RecipesRestAPI destroy вызван')
+        if self.service(request, self.kwargs).destroy():
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    def partial_update(self, request: request, pk: int = None, **kwargs) -> HttpResponse:
-        logger.info('Метод RecipesAPI partial_update вызван')
+    def partial_update(self, request: request, pk: int, **kwargs) -> HttpResponse:
+        logger.info('Метод RecipesRestAPI partial_update вызван')
         kwargs['partial'] = True
-        return self.update(request=request, pk=pk, **kwargs)
+        return Response(self.service(request, self.kwargs, self.action).update(pk=pk, **kwargs))
 
-    def update(self, request: request, pk: int = None, **kwargs) -> HttpResponse:
-        logger.info('Метод RecipesAPI update вызван')
-        return Response(self.service.update(request=request, pk=pk, **kwargs))
+    def update(self, request: request, pk: int, **kwargs) -> HttpResponse:
+        logger.info('Метод RecipesRestAPI update вызван')
+        return Response(self.service(request, self.kwargs, self.action).update(pk=pk, **kwargs))
 
-    def get_author_recipes(self, author: int = None) -> HttpResponse:
-        logger.info('Метод RecipesAPI get_author_recipes вызван')
-        return Response(self.service.get_short_recipe_list(author=author))
 
-    def get_count_author_recipes(self, author: int = None) -> HttpResponse:
-        logger.info('Метод RecipesAPI get_count_author_recipes вызван')
-        return Response(self.service.get_count_author_recipes(author=author))
+class RecipesAppAPI:
+    service = RecipesService
 
-    def get_short_recipe(self, pk: str = None) -> HttpResponse:
-        logger.info('Метод RecipesAPI get_short_recipe вызван')
-        return Response(self.service.get_short_recipe(pk=int(pk)))
+    def get_author_recipes(self, author: int) -> QuerySet:
+        logger.info('Метод RecipesRestAPI get_author_recipes вызван')
+        return self.service(action='short_serializer').get_recipes_with_short_serializer(author=author) # noqa
+
+    def get_count_author_recipes(self, author: int) -> int:
+        logger.info('Метод RecipesRestAPI get_count_author_recipes вызван')
+        return self.service().get_count_author_recipes(author=author)
+
+    def get_recipe_with_shot_serializer(self, request: request, pk: Union[str, int]) -> dict: # noqa
+        logger.info('Метод RecipesRestAPI get_short_recipe вызван')
+        return self.service(request=request,
+                            action='short_serializer').get_recipe_with_shot_serializer(pk=int(pk))
+
+    def get_recipe(self, request: request, pk: int) -> dict:
+        logger.info('Метод RecipesRestAPI get_recipe вызван')
+        return self.service(request).get_recipe(pk=pk)

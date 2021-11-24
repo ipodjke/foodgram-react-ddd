@@ -1,87 +1,85 @@
 import logging
-from collections import OrderedDict
+from typing import Optional
 
 from django.conf import settings
-from django.http import request
+from django.db.models.query import QuerySet
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.settings import api_settings
 
 import subscriptions.interfaces as interface
-from recipes.interfaces import UsersInterface
 from utils.base_services import BaseService
 
 from .models import Subscriptions
 from .serializers import SubscriptionsSerializer
 
-logger = logging.getLogger(__name__)
-
 
 class SubscriptionsService(BaseService):
-    def __init__(self):
-        self.instance = Subscriptions
-        self.pagination_class = api_settings.DEFAULT_PAGINATION_CLASS()
+    instance = Subscriptions
+    serializer_class = SubscriptionsSerializer
+    logger = logging.getLogger(__name__)
 
-    def get_list_subs(self, request: request) -> dict:
-        logger.info('Метод SubscriptionsService get_list_subs вызван')
-        queryset = self.instance.objects.filter(follower=request.user.id)
+    # REST API logic
+    def list_subs(self) -> dict:
+        self.logger.info('Метод SubscriptionsService list_subs вызван')
+        queryset = self.get_queryset()
 
-        page = self.pagination_class.paginate_queryset(
-            queryset=queryset,
-            request=request,
-            view=None
+        page = self.paginate_queryset(queryset)
+        users = [interface.UserInterface().get_user(pk=obj.author, request=self.request) for obj in page] # noqa
+
+        if page is not None:
+            serializer = self.get_serializer(users, many=True)
+            return self.get_paginated_data(serializer.data)
+
+        serializer = SubscriptionsSerializer(
+            [interface.UserInterface().get_user(pk=obj.author, request=self.request) for obj in queryset], # noqa
+            many=True,
         )
-
-        users = [interface.UserInterface().get_user(pk=obj.author) for obj in page]
-        context = {'limit': request.query_params.get('recipes_limit')}
-        serializer = SubscriptionsSerializer(users, many=True, context=context)
-
-        return OrderedDict([
-            ('count', self.pagination_class.page.paginator.count),
-            ('next', self.pagination_class.get_next_link()),
-            ('previous', self.pagination_class.get_previous_link()),
-            ('results', serializer.data)
-        ])
-    
-    def subscribe(self, request: request, pk: int = None) -> dict:
-        logger.info('Метод SubscriptionsService subscribe вызван')
-        if request.user.id == pk:
-            raise ValidationError(
-                {'errors': settings.ERROR_MESSAGE.get('self_subscription')}
-            )
-        if self.instance.objects.filter(follower=request.user.id, author=pk).exists():
-            raise ValidationError(
-                {'errors': settings.ERROR_MESSAGE.get('alredy_subscribe')}
-            )
-
-        self.instance.objects.create(follower=request.user.id, author=pk)
-        author = UsersInterface().get_user(pk=pk, request=request)
-        context = {'limit': request.query_params.get('recipes_limit')}
-        serializer = SubscriptionsSerializer(author, context=context)
 
         return serializer.data
 
-    def unsubscribe(self, request: request, pk: int = None) -> bool:
-        logger.info('Метод SubscriptionsService unsubscribe вызван')
-        if request.user.id == pk:
+    def subscribe(self, pk: int = None) -> dict:
+        self.logger.info('Метод SubscriptionsService subscribe вызван')
+        author = interface.UserInterface().get_user(pk=pk, request=self.request)
+        serializer = self.get_serializer(data=author)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        author['is_subscribed'] = True
+        serializer.instance = author
+        return serializer.data
+
+    def unsubscribe(self, pk: int = None) -> bool:
+        self.logger.info('Метод SubscriptionsService unsubscribe вызван')
+        self._validate_unsubscribe_request(self.request.user.id, pk)
+        self.instance.objects.get(follower=self.request.user.id, author=pk).delete()
+        return True
+
+    # APP API logic
+    def check_is_subscribed(self, user: int, author: int) -> bool:
+        self.logger.info('Метод SubscriptionsService check_is_subscribed вызван')
+        context = {'follower': user, 'author': author}
+        return self.check_is_in(context)
+
+    # Interface logic
+    def get_author_recipes(self, author: int) -> QuerySet:
+        self.logger.info('Метод SubscriptionsService get_recipes вызван')
+        return interface.RecipesInrerface().get_author_recipes(author=author)
+
+    def get_count_author_recipes(self, author: int) -> int:
+        self.logger.info('Метод SubscriptionsService get_count_recipes вызван')
+        return interface.RecipesInrerface().get_count_author_recipes(author=author)
+
+    # Service logic
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(follower=self.request.user.id)
+
+    # local functions
+    def _validate_unsubscribe_request(self, follower: int, author: int) -> Optional[Exception]:
+        if follower == author:
             raise ValidationError(
                 {'errors': settings.ERROR_MESSAGE.get('self_unsubscription')}
             )
-        if not self.instance.objects.filter(follower=request.user.id, author=pk).exists():
+        if not self.instance.objects.filter(follower=follower, author=author).exists():
             raise ValidationError(
                 {'errors': settings.ERROR_MESSAGE.get('not_subscribe')}
             )
-        self.instance.objects.get(follower=request.user.id, author=pk).delete()
-        return True
-
-    def get_recipes(self, author: int) -> dict:
-        logger.info('Метод SubscriptionsService get_recipes вызван')
-        return interface.RecipesInrerface().get_author_recipes(author=author)
-
-    def get_count_recipes(self, author: int) -> dict:
-        logger.info('Метод SubscriptionsService get_count_recipes вызван')
-        return interface.RecipesInrerface().get_count_author_recipes(author=author)
-
-    def check_is_subscribed(self, user: int, author: int) -> dict:
-        logger.info('Метод SubscriptionsService check_is_subscribed вызван')
-        return self.instance.objects.filter(follower=user, author=author).exists()

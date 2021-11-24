@@ -11,14 +11,21 @@ from .services import IngredientsService
 logger = logging.getLogger(__name__)
 
 
-class IngredientsAPI(viewsets.ViewSet):
+class IngredientsRestAPI(viewsets.ViewSet):
+    service = IngredientsService
 
-    service = IngredientsService()
+    def list(self, request: request) -> HttpResponse:
+        logger.info('Метод IngredientsRestAPI list вызван')
+        return Response(self.service(request).list())
 
-    def list(self, request: object) -> HttpResponse:
-        logger.info('Метод IngredientsAPI list вызван')
-        return Response(self.service.get_all(request=request))
+    def retrieve(self, request: request, pk: str) -> HttpResponse:
+        logger.info('Метод IngredientsRestAPI retrieve вызван')
+        return Response(self.service(request, self.kwargs).retrieve())
 
-    def retrieve(self, request: request = None, pk: int = None) -> HttpResponse:
-        logger.info('Метод IngredientsAPI retrieve вызван')
-        return Response(self.service.get_by_id(instance_id=pk))
+
+class IngredientsAppAPI:
+    service = IngredientsService
+
+    def get_ingredient(self, pk: int) -> dict:
+        logger.info('Метод IngredientsAppAPI get_ingredient вызван')
+        return self.service().get_ingredient(pk=pk)

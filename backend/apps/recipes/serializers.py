@@ -48,18 +48,21 @@ class RecipeSerializer(serializers.ModelSerializer):
         return services.RecipesService().get_tags(tags=obj.tags.all())
 
     def get_is_favorited(self, obj):
-        user = self.context.get('request').user if self.context.get('request') else None
+        user = self._get_user_from_request(self.context)
         return services.RecipesService().check_is_favorited(
             recipe=obj.id,
             user=user
         )
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context.get('request').user if self.context.get('request') else None
+        user = self._get_user_from_request(self.context)
         return services.RecipesService().check_is_in_shopping_cart(
             recipe=obj.id,
             user=user
         )
+
+    def _get_user_from_request(self, data):
+        return data.get('request').user if data.get('request') else None
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
@@ -79,36 +82,32 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         exclude = ('author',)
 
-    # def validate_ingredients(self, value):
-    #     unique_ingredients = []
-    #     for data_ingredient in value:
+    def validate_ingredients(self, value):
+        unique_ingredients = []
+        for data_ingredient in value:
+            ingredient = services.RecipesService().get_ingredient(pk=data_ingredient.get('id'))
 
-    #         ingredient = get_object_or_404(
-    #             Ingredient,
-    #             id=data_ingredient.get('id')
-    #         )
+            if ingredient in unique_ingredients:
+                raise serializers.ValidationError(
+                    f'Дублируется {ingredient.get("name")}, пожалуйста оставьте один'
+                    ' ингредиент.'
+                )
 
-    #         if ingredient in unique_ingredients:
-    #             raise serializers.ValidationError(
-    #                 f'Дублируется {ingredient.name}, пожалуйста оставьте один'
-    #                 ' ингредиент.'
-    #             )
+            unique_ingredients.append(ingredient)
 
-    #         unique_ingredients.append(ingredient)
+            if int(data_ingredient.get('amount')) <= 0:
+                raise serializers.ValidationError(
+                    'Вы велли не корректное значение ('
+                    f'{data_ingredient.get("amount")}) для {ingredient.get("name")}'
+                )
 
-    #         if int(data_ingredient.get('amount')) < 0:
-    #             raise serializers.ValidationError(
-    #                 'Вы велли не корректное значение ('
-    #                 f'{data_ingredient.get("amount")}) для {ingredient.name}'
-    #             )
-
-    #     return value
+        return value
 
     def create(self, validated_data):
         tags = self._get_tags(validated_data)
         ingredients = self._get_ingredients(validated_data)
 
-        recipe = Recipe.objects.create(
+        recipe = self.Meta.model.objects.create(
             author=self.context.get('request').user.id,
             **validated_data
         )
