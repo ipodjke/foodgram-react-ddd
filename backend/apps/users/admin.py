@@ -9,7 +9,6 @@ from .models import User
 class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
-
     list_display = ('email', 'username', 'first_name',)
     list_filter = ('email', 'first_name',)
     fieldsets = (
@@ -17,7 +16,6 @@ class UserAdmin(BaseUserAdmin):
         ('Персональная информация', {'fields': ('username',
                                                 'first_name',
                                                 'last_name')}),
-        ('Подписки', {'fields': ('subscriptions',)}),
         ('Права доступа', {'fields': ('is_superuser',
                                       'is_staff',
                                       'is_active',
@@ -39,4 +37,4 @@ class UserAdmin(BaseUserAdmin):
     )
     search_fields = ('email', 'name', 'username')
     ordering = ('email',)
-    filter_horizontal = ('groups', 'user_permissions', 'subscriptions')
+    filter_horizontal = ('groups', 'user_permissions')
