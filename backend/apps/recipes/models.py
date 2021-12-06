@@ -31,8 +31,7 @@ class Recipe(models.Model):
         verbose_name_plural = 'Рецепты'
 
     def __str__(self) -> str:
-        return (f'{self.id} | {self.name} | '
-                f'{self.tags.all()[:5]} |{self.ingredients.all()[:5]}')
+        return f'id = {self.id} | название рецепта = {self.name}'
 
 
 class IngredientsList(models.Model):

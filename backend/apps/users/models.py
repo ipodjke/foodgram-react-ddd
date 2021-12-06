@@ -34,3 +34,7 @@ class User(AbstractUser):
     class Meta(AbstractUser.Meta):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+
+    def __str__(self) -> str:
+        return (f'id = {self.id} | email = {self.email} | имя = {self.first_name}'
+                f'фамилия = {self.last_name}')

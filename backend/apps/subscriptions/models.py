@@ -20,3 +20,6 @@ class Subscriptions(models.Model):
                 fields=['follower', 'author'], name='unique subscription'
             )
         ]
+
+    def __str__(self) -> str:
+        return f'id = {self.id} | follower = {self.follower} | author = {self.author}'

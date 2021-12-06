@@ -1,13 +1,21 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth import get_user_model
+
+import subscriptions.services as service
+from shopping_cart import services
 
 from .models import Subscriptions
 
 
 class ShoppingCartAdminForm(forms.ModelForm):
-    follower = forms.ModelChoiceField(queryset=get_user_model().objects.all(), label='Подписчик')
-    author = forms.ModelChoiceField(queryset=get_user_model().objects.all(), label='Автор')
+    follower = forms.ModelChoiceField(
+        queryset=service.SubscriptionsAdminService().get_users(),
+        label='Подписчик'
+    )
+    author = forms.ModelChoiceField(
+        queryset=service.SubscriptionsAdminService().get_users(),
+        label='Автор'
+    )
 
     def clean_follower(self):
         return self.cleaned_data['follower'].id
@@ -29,9 +37,9 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     form = ShoppingCartAdminForm
 
     def get_follower(self, obj):
-        return get_user_model().objects.get(pk=obj.follower)
+        return services.ShoppingCartAdminService().get_user(pk=obj.follower)
     get_follower.short_description = 'Подписчик'
 
     def get_author(self, obj):
-        return get_user_model().objects.get(pk=obj.author)
+        return services.ShoppingCartAdminService().get_user(pk=obj.author)
     get_author.short_description = 'Автор'

@@ -12,15 +12,16 @@ from utils.base_services import BaseService
 from .models import Subscriptions
 from .serializers import SubscriptionsSerializer
 
+logger = logging.getLogger(__name__)
+
 
 class SubscriptionsService(BaseService):
     instance = Subscriptions
     serializer_class = SubscriptionsSerializer
-    logger = logging.getLogger(__name__)
 
     # REST API logic
     def list_subs(self) -> dict:
-        self.logger.info('Метод SubscriptionsService list_subs вызван')
+        logger.info('Метод SubscriptionsService list_subs вызван')
         queryset = self.get_queryset()
 
         page = self.paginate_queryset(queryset)
@@ -38,7 +39,7 @@ class SubscriptionsService(BaseService):
         return serializer.data
 
     def subscribe(self, pk: int = None) -> dict:
-        self.logger.info('Метод SubscriptionsService subscribe вызван')
+        logger.info('Метод SubscriptionsService subscribe вызван')
         author = interface.UserInterface().get_user(pk=pk, request=self.request)
         serializer = self.get_serializer(data=author)
         serializer.is_valid(raise_exception=True)
@@ -48,24 +49,24 @@ class SubscriptionsService(BaseService):
         return serializer.data
 
     def unsubscribe(self, pk: int = None) -> bool:
-        self.logger.info('Метод SubscriptionsService unsubscribe вызван')
+        logger.info('Метод SubscriptionsService unsubscribe вызван')
         self._validate_unsubscribe_request(self.request.user.id, pk)
         self.instance.objects.get(follower=self.request.user.id, author=pk).delete()
         return True
 
     # APP API logic
     def check_is_subscribed(self, user: int, author: int) -> bool:
-        self.logger.info('Метод SubscriptionsService check_is_subscribed вызван')
+        logger.info('Метод SubscriptionsService check_is_subscribed вызван')
         context = {'follower': user, 'author': author}
         return self.check_is_in(context)
 
     # Interface logic
     def get_author_recipes(self, author: int) -> QuerySet:
-        self.logger.info('Метод SubscriptionsService get_recipes вызван')
+        logger.info('Метод SubscriptionsService get_recipes вызван')
         return interface.RecipesInrerface().get_author_recipes(author=author)
 
     def get_count_author_recipes(self, author: int) -> int:
-        self.logger.info('Метод SubscriptionsService get_count_recipes вызван')
+        logger.info('Метод SubscriptionsService get_count_recipes вызван')
         return interface.RecipesInrerface().get_count_author_recipes(author=author)
 
     # Service logic
@@ -83,3 +84,13 @@ class SubscriptionsService(BaseService):
             raise ValidationError(
                 {'errors': settings.ERROR_MESSAGE.get('not_subscribe')}
             )
+
+
+class SubscriptionsAdminService:
+    def get_user(self, pk: int) -> QuerySet:
+        logger.info('Метод SubscriptionsAdminService get_user вызван')
+        return interface.UsersAdminInterface().get_user(pk=pk)
+
+    def get_users(self) -> QuerySet:
+        logger.info('Метод SubscriptionsAdminService get_users вызван')
+        return interface.UsersAdminInterface().get_users()

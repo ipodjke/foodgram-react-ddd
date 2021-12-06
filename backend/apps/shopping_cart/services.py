@@ -31,7 +31,6 @@ class ShoppingCartService(BaseService):
     include_to_lookup = {'user': 'self.request.user.id'}
     filter_backends = []
     pagination_class = None
-    logger = logging.getLogger(__name__)
 
     # REST API logic
     def add_to_shopping_cart(self, pk: int) -> dict:
@@ -172,3 +171,24 @@ class ShoppingCartService(BaseService):
             raise ValidationError(
                 {'errors': settings.ERROR_MESSAGE.get('not_in_cart')}
             )
+
+
+class ShoppingCartAdminService:
+    # interface logic
+    # Recipes
+    def get_recipes(self) -> QuerySet:
+        logger.info('Метод ShoppingCartAdminService get_recipes вызван')
+        return interface.RecipesAdminInterface().get_recipes()
+
+    def get_recipe(self, pk: int) -> QuerySet:
+        logger.info('Метод ShoppingCartAdminService get_recipe вызван')
+        return interface.RecipesAdminInterface().get_recipe(pk=pk)
+
+    # Users
+    def get_users(self) -> QuerySet:
+        logger.info('Метод ShoppingCartAdminService get_users вызван')
+        return interface.UsersAminInterface().get_users()
+
+    def get_user(self, pk: int) -> QuerySet:
+        logger.info('Метод ShoppingCartAdminService get_user вызван')
+        return interface.UsersAminInterface().get_user(pk=pk)

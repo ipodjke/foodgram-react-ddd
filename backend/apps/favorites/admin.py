@@ -1,15 +1,20 @@
 from django import forms
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 
-from recipes.models import Recipe
+import favorites.services as service
 
 from .models import Favorites
 
 
 class FavoritesAdminForm(forms.ModelForm):
-    recipe = forms.ModelChoiceField(queryset=Recipe.objects.all(), label='Рецепт')
-    user = forms.ModelChoiceField(queryset=get_user_model().objects.all(), label='Пользователь')
+    recipe = forms.ModelChoiceField(
+        queryset=service.FavoritesAdminService().get_recipes(),
+        label='Рецепт'
+    )
+    user = forms.ModelChoiceField(
+        queryset=service.FavoritesAdminService().get_users(),
+        label='Пользователь'
+    )
 
     def clean_recipe(self):
         return self.cleaned_data['recipe'].id
@@ -24,9 +29,9 @@ class FavoritesAdmin(admin.ModelAdmin):
     form = FavoritesAdminForm
 
     def get_recipe(self, obj):
-        return Recipe.objects.get(pk=obj.recipe)
+        return service.FavoritesAdminService().get_recipe(pk=obj.recipe)
     get_recipe.short_description = 'Рецепт'
 
     def get_user(self, obj):
-        return get_user_model().objects.get(pk=obj.user)
+        return service.FavoritesAdminService().get_user(pk=obj.user)
     get_user.short_description = 'Пользователь'

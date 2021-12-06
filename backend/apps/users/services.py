@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.db.models.query import QuerySet
 from django.http import request
 
 import users.interfaces as interface
@@ -9,15 +10,14 @@ from utils.base_services import BaseService
 from .serializers import (CreateUserSerializer, SetPasswordSerializer,
                           UserSerializer)
 
-logger = logging.getLogger(__name__)
-
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 class UsersService(BaseService):
     instance = User
     serializer_class = UserSerializer
-    logger = logging.getLogger(__name__)
 
     # REST API logic
     def get_profile(self) -> dict:
@@ -55,3 +55,15 @@ class UsersService(BaseService):
         elif self.action == 'set_password':
             return SetPasswordSerializer
         return super().get_serializer_class()
+
+
+class UsersAdminService:
+    instance = User
+
+    def get_users(self) -> QuerySet:
+        logger.info('Метод UsersService get_users вызван')
+        return self.instance.objects.all()
+
+    def get_user(self, pk: int) -> QuerySet:
+        logger.info('Метод UsersService get_user_queryset вызван')
+        return self.instance.objects.get(pk=pk)

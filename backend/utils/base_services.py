@@ -23,7 +23,6 @@ class BaseService(CreateMixin, DestroyMixin, ListMixin, RetrieveMixin):
     serializer_class = None
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     include_to_lookup = None
-    logger = None
 
     def __init__(self, request=None, self_kwargs=None, action=None):
         self.action = action
@@ -35,9 +34,6 @@ class BaseService(CreateMixin, DestroyMixin, ListMixin, RetrieveMixin):
         )
         assert self.serializer_class is not None, (
             f'Необходимо указать serializer_class в {self.__class__.__name__}'
-        )
-        assert self.logger is not None, (
-            f'Необходимо указать logeer в {self.__class__.__name__}'
         )
 
     # секция получения объектов

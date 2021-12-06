@@ -4,7 +4,7 @@ from django.db import models
 
 class Favorites(models.Model):
     user = models.BigIntegerField(
-        verbose_name='Поьзователь',
+        verbose_name='Пользователь',
         validators=[MinValueValidator(1)]
     )
     recipe = models.BigIntegerField(
@@ -20,3 +20,6 @@ class Favorites(models.Model):
                 fields=['user', 'recipe'], name='unique recipe'
             )
         ]
+
+    def __str__(self) -> str:
+        return f'id = {self.id} | user = {self.user} | recipe = {self.recipe}'
