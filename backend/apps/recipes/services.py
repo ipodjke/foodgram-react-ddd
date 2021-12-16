@@ -3,17 +3,15 @@ from typing import Union
 
 from django.db.models.query import QuerySet
 from django.http import request
-
 from django_filters.rest_framework import DjangoFilterBackend
 
 import recipes.interfaces as interfaces
-from utils.base_services import BaseService
-
 from .models import Recipe
 from .serializers import (CreateRecipeSerializer, RecipeSerializer,
                           ShortRecipeSerializer)
 from .utils.filters import RecipeFilterSet
 from .utils.permission import IsOwnerUpateOrDelete
+from utils.base_services import BaseService
 
 logger = logging.getLogger(__name__)
 

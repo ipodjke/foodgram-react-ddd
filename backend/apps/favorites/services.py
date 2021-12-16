@@ -4,21 +4,19 @@ from typing import Union
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django.http.response import Http404
-
 from rest_framework.exceptions import ValidationError
 
 import favorites.interfaces as interface
-from utils.base_services import BaseService
-
-from .models import Favorites
+from .models import Favorite
 from .serializers import FavoritesSerializer
+from utils.base_services import BaseService
 
 logger = logging.getLogger(__name__)
 
 
 class FavoritesService(BaseService):
 
-    instance = Favorites
+    instance = Favorite
     serializer_class = FavoritesSerializer
     lookup_field = 'recipe'
     lookup_url_kwarg = 'pk'
@@ -70,7 +68,7 @@ class FavoritesService(BaseService):
 
 
 class FavoritesAdminService:
-    instance = Favorites
+    instance = Favorite
 
     def get_total_number_of_additions(self, pk: int) -> QuerySet:
         logger.info('Метод FavoritesAdminService get_total_number_of_additions вызван')

@@ -3,20 +3,18 @@ from typing import Optional
 
 from django.conf import settings
 from django.db.models.query import QuerySet
-
 from rest_framework.exceptions import ValidationError
 
 import subscriptions.interfaces as interface
-from utils.base_services import BaseService
-
-from .models import Subscriptions
+from .models import Subscription
 from .serializers import SubscriptionsSerializer
+from utils.base_services import BaseService
 
 logger = logging.getLogger(__name__)
 
 
 class SubscriptionsService(BaseService):
-    instance = Subscriptions
+    instance = Subscription
     serializer_class = SubscriptionsSerializer
 
     # REST API logic

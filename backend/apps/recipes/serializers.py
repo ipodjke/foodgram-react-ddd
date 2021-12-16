@@ -4,7 +4,6 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 import recipes.services as services
-
 from .models import IngredientsList, Recipe, TagsList
 
 
@@ -82,6 +81,23 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         exclude = ('author',)
 
+    def validate_cooking_time(self, value):
+        if int(value) == 0:
+            raise serializers.ValidationError(
+                'Нельзя задать время готовки = 0'
+            )
+        return value
+
+    def validate_tags(self, value):
+        unique_tags = []
+        for tag_id in value:
+            if tag_id in unique_tags:
+                raise serializers.ValidationError(
+                    'Вы ввели два одинаковых тега'
+                )
+            unique_tags.append(tag_id)
+        return value
+
     def validate_ingredients(self, value):
         unique_ingredients = []
         for data_ingredient in value:
@@ -97,7 +113,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
             if int(data_ingredient.get('amount')) <= 0:
                 raise serializers.ValidationError(
-                    'Вы велли не корректное значение ('
+                    'Вы ввели не корректное значение ('
                     f'{data_ingredient.get("amount")}) для {ingredient.get("name")}'
                 )
 
@@ -121,20 +137,13 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         tags = self._get_tags(validated_data)
         ingredients = self._get_ingredients(validated_data)
 
-        instance.name = validated_data.get('name', instance.name)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time',
-                                                   instance.cooking_time)
-        instance.image = validated_data.get('image', instance.image)
-        instance.save()
-
         instance.tags.all().delete()
         self._add_tags_to_recipe(instance, tags)
 
         instance.ingredients.all().delete()
         self._add_ingredients_to_recipe(instance, ingredients)
 
-        return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         serializer = RecipeSerializer(instance, context=self.context)

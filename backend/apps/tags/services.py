@@ -2,10 +2,9 @@ import logging
 
 from django.db.models.query import QuerySet
 
-from utils.base_services import BaseService
-
 from .models import Tag
 from .serializers import TagSerializer
+from utils.base_services import BaseService
 
 logger = logging.getLogger(__name__)
 

@@ -1,29 +1,11 @@
-from django import forms
 from django.contrib import admin
 
 import favorites.services as service
-
-from .models import Favorites
-
-
-class FavoritesAdminForm(forms.ModelForm):
-    recipe = forms.ModelChoiceField(
-        queryset=service.FavoritesAdminService().get_recipes(),
-        label='Рецепт'
-    )
-    user = forms.ModelChoiceField(
-        queryset=service.FavoritesAdminService().get_users(),
-        label='Пользователь'
-    )
-
-    def clean_recipe(self):
-        return self.cleaned_data['recipe'].id
-
-    def clean_user(self):
-        return self.cleaned_data['user'].id
+from .forms import FavoritesAdminForm
+from .models import Favorite
 
 
-@admin.register(Favorites)
+@admin.register(Favorite)
 class FavoritesAdmin(admin.ModelAdmin):
     list_display = ('get_user', 'get_recipe')
     form = FavoritesAdminForm

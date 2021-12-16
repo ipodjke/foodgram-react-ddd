@@ -2,11 +2,10 @@ import logging
 
 from django.db.models.query import QuerySet
 
-from utils.base_services import BaseService
-
 from .models import Ingredient
 from .serializers import IngredientSerializer
 from .utils.filters import DoubleSearchBackend
+from utils.base_services import BaseService
 
 logger = logging.getLogger(__name__)
 

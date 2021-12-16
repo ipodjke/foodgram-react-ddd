@@ -4,7 +4,6 @@ from typing import Union
 from django.db.models.query import QuerySet
 from django.http import request
 from django.http.response import HttpResponse
-
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response

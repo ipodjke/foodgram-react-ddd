@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
-class Subscriptions(models.Model):
+class Subscription(models.Model):
     follower = models.BigIntegerField(
         verbose_name='Подписчик',
         validators=[MinValueValidator(1)]

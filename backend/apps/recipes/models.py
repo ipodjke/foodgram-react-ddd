@@ -47,6 +47,15 @@ class IngredientsList(models.Model):
     )
     amount = models.PositiveSmallIntegerField()
 
+    class Meta:
+        verbose_name = 'Список ингредиентов'
+        verbose_name_plural = 'Список ингредиентов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe'], name='unique ingredient'
+            )
+        ]
+
 
 class TagsList(models.Model):
     recipe = models.ForeignKey(
@@ -59,3 +68,12 @@ class TagsList(models.Model):
         verbose_name='Тег',
         validators=[validators.MinValueValidator(1)]
     )
+
+    class Meta:
+        verbose_name = 'Список тегов'
+        verbose_name_plural = 'Список тегов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tag', 'recipe'], name='unique tag'
+            )
+        ]

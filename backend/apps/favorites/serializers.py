@@ -1,14 +1,13 @@
 from django.conf import settings
-
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Favorites
+from .models import Favorite
 
 
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Favorites
+        model = Favorite
         fields = '__all__'
 
     def validate_recipe(self, value):

@@ -2,11 +2,10 @@ import io
 import logging
 from typing import Union
 
+import reportlab
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django.http.response import Http404
-
-import reportlab
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
@@ -15,10 +14,9 @@ from reportlab.pdfgen import canvas
 from rest_framework.exceptions import ValidationError
 
 import shopping_cart.interfaces as interface
-from utils.base_services import BaseService
-
 from .models import ShoppingCart
 from .serializers import ShoppingCartSerializer
+from utils.base_services import BaseService
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +162,6 @@ class ShoppingCartService(BaseService):
     def _validate_delete_request(self, user: int, recipe: int) -> Union[ValidationError,
                                                                         Http404,
                                                                         None]:
-        print(11111)
         interface.RecipesInrerface().get_recipe_with_shot_serializer(request=self.request,
                                                                      pk=recipe)
         if not self.instance.objects.filter(user=user, recipe=recipe).exists():

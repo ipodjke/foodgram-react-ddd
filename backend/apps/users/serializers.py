@@ -2,11 +2,8 @@ from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-
 from djoser.conf import settings
-from djoser.serializers import \
-    UserCreateSerializer as DjoserUserCreateSerializer
-from djoser.serializers import UserSerializer as DjoserUserSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
 import users.services as services
@@ -14,7 +11,7 @@ import users.services as services
 User = get_user_model()
 
 
-class CreateUserSerializer(DjoserUserCreateSerializer):
+class CreateUserSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = (
@@ -23,7 +20,7 @@ class CreateUserSerializer(DjoserUserCreateSerializer):
         ) + tuple(User.REQUIRED_FIELDS) + ('password',)
 
 
-class UserSerializer(DjoserUserSerializer):
+class UserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:

@@ -5,10 +5,9 @@ from django.db.models.query import QuerySet
 from django.http import request
 
 import users.interfaces as interface
-from utils.base_services import BaseService
-
 from .serializers import (CreateUserSerializer, SetPasswordSerializer,
                           UserSerializer)
+from utils.base_services import BaseService
 
 User = get_user_model()
 

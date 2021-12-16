@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
-class Favorites(models.Model):
+class Favorite(models.Model):
     user = models.BigIntegerField(
         verbose_name='Пользователь',
         validators=[MinValueValidator(1)]

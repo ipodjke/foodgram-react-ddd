@@ -1,11 +1,9 @@
 from django.conf import settings
-
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 import subscriptions.services as service
-
-from .models import Subscriptions
+from .models import Subscription
 
 
 class SubscriptionsSerializer(serializers.Serializer):
@@ -33,8 +31,8 @@ class SubscriptionsSerializer(serializers.Serializer):
                 {'errors': settings.ERROR_MESSAGE.get('self_subscription')}
             )
 
-        if Subscriptions.objects.filter(follower=self.context.get('request').user.id,
-                                        author=attrs.get('id')).exists():
+        if Subscription.objects.filter(follower=self.context.get('request').user.id,
+                                       author=attrs.get('id')).exists():
             raise ValidationError(
                 {'errors': settings.ERROR_MESSAGE.get('alredy_subscribe')}
             )
@@ -43,5 +41,5 @@ class SubscriptionsSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         validated_data['is_subscribed'] = True
-        return Subscriptions.objects.create(follower=self.context.get('request').user.id,
-                                            author=validated_data.get('id'))
+        return Subscription.objects.create(follower=self.context.get('request').user.id,
+                                           author=validated_data.get('id'))

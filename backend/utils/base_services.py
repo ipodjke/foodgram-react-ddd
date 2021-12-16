@@ -3,7 +3,6 @@ from collections import OrderedDict
 from django.db import models
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404
-
 from rest_framework import exceptions
 from rest_framework.settings import api_settings
 
