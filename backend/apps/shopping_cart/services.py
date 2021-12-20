@@ -125,6 +125,7 @@ class ShoppingCartService(BaseService):
         p.drawString(5.3 * cm, margin_top, 'Ингредиенты для похода в магазин! :)')
         p.setFontSize(16)
 
+        page_spliter = 0
         for ingredient, amount in ingredients.items():
             p.drawString(
                 left_margin,
@@ -132,6 +133,12 @@ class ShoppingCartService(BaseService):
                 f'{ingredient} - {amount}'
             )
             margint_top_header -= cm
+            page_spliter += 1
+
+            if page_spliter % 24 == 0:
+                p.showPage()
+                p.drawString(3 * cm, margin_top, 'Продолжение ингредиентов для похода в магазин!') # noqa
+                margint_top_header = margin_top - 3 * cm
 
         p.showPage()
         p.save()
